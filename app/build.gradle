@@ -39,4 +39,6 @@ dependencies {
     // for Lazysodium use:
     implementation "com.goterl:lazysodium-android:5.1.0@aar"
     implementation "net.java.dev.jna:jna:5.9.0@aar"
+    // for TweetNacl
+    implementation "io.github.instantwebp2p:tweetnacl-java:1.1.2"
 }

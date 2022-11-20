@@ -51,14 +51,14 @@ public class MainActivity extends AppCompatActivity {
                 String publicKeyABase64Lazysodium = getCryptoBoxPublicKeyBase64Lazysodium(keyPairALazysodium);
                 String privateKeyBBase64Lazysodium = getCryptoBoxPrivateKeyBase64Lazysodium(keyPairBLazysodium);
                 String publicKeyBBase64Lazysodium = getCryptoBoxPublicKeyBase64Lazysodium(keyPairBLazysodium);
-                String ciphertextBase64Lazysodium = encryptCryptoBoxBase64Lazysodium(privateKeyBBase64Lazysodium, publicKeyABase64Lazysodium, plaintextLazysodium);
-                String decryptedtextLazasodium = decryptCryptoBoxBase64Lazysodium(privateKeyABase64Lazysodium, publicKeyBBase64Lazysodium, ciphertextBase64Lazysodium);
+                String compleCiphertextBase64Lazysodium = encryptCryptoBoxHexLazysodium(privateKeyBBase64Lazysodium, publicKeyABase64Lazysodium, plaintextLazysodium);
+                String decryptedtextLazasodium = decryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, publicKeyBBase64Lazysodium, compleCiphertextBase64Lazysodium);
                 
                 privateKeyA.setText(privateKeyABase64Lazysodium);
                 publicKeyA.setText(publicKeyABase64Lazysodium);
                 privateKeyB.setText(privateKeyBBase64Lazysodium);
                 publicKeyB.setText(publicKeyBBase64Lazysodium);
-                ciphertext.setText(ciphertextBase64Lazysodium);
+                ciphertext.setText(compleCiphertextBase64Lazysodium);
                 decryptedtext.setText(decryptedtextLazasodium);
             }
         });
@@ -88,34 +88,41 @@ public class MainActivity extends AppCompatActivity {
      * @param privateKeyB from Sender
      * @param publicKeyA
      * @param plaintext
-     * @return the ciphertext in Base64 encoding
+     * @return the nonce and ciphertext in hex encoding, separated by ":" (nonce:ciphertext)
      */
-    private String encryptCryptoBoxBase64Lazysodium(String privateKeyB, String publicKeyA, String plaintext) {
+    private String encryptCryptoBoxHexLazysodium(String privateKeyB, String publicKeyA, String plaintext) {
         try {
             Box.Lazy box = (Box.Lazy) ls;
             // get the keys
             com.goterl.lazysodium.utils.Key keyA = Key.fromBytes(base64Decoding(publicKeyA));
             com.goterl.lazysodium.utils.Key keyB = Key.fromBytes(base64Decoding(privateKeyB));
             KeyPair encryptionKeyPair = new KeyPair(keyA, keyB);
-            //byte[] nonce = ls.randomBytesBuf(SecretBox.NONCEBYTES);
-            nonceS = ls.randomBytesBuf(SecretBox.NONCEBYTES);
-            // box.cryptoBoxEasy return a hex encoded string but not a Base64 encoded one
-            return base64Encoding(hexToBytes(box.cryptoBoxEasy(plaintext, nonceS, encryptionKeyPair)));
+            byte[] nonce = ls.randomBytesBuf(SecretBox.NONCEBYTES);
+            // box.cryptoBoxEasy returns a hex encoded string but not a Base64 encoded one
+            return bytesToHex(nonce) + ":" + box.cryptoBoxEasy(plaintext, nonce, encryptionKeyPair);
         } catch (SodiumException e) {
             e.printStackTrace();
             return "";
         }
     }
 
-    private String decryptCryptoBoxBase64Lazysodium(String privateKeyA, String publicKeyB, String ciphertext) {
-
+    /**
+     * This is the CryptoBox decryption, it needs the publicKeyB from sender and privateKeyA from receipient (both in Base64 encoding)
+     * @param privateKeyA from ReceipientSender
+     * @param publicKeyB
+     * @param completeCiphertext as nonce:ciphertext (each in hex encoding)
+     * @return the decrypted value
+     */
+    private String decryptCryptoBoxHexLazysodium(String privateKeyA, String publicKeyB, String completeCiphertext) {
         try {
+            String[] parts = completeCiphertext.split(":");
+            if (parts.length != 2) return "";
             Box.Lazy box = (Box.Lazy) ls;
             // get the keys
             com.goterl.lazysodium.utils.Key keyA = Key.fromBytes(base64Decoding(privateKeyA));
             com.goterl.lazysodium.utils.Key keyB = Key.fromBytes(base64Decoding(publicKeyB));
             KeyPair decryptionKeyPair = new KeyPair(keyB, keyA);
-            return box.cryptoBoxOpenEasy(bytesToHex(base64Decoding(ciphertext)), nonceS, decryptionKeyPair);
+            return box.cryptoBoxOpenEasy(parts[1], hexToBytes(parts[0]), decryptionKeyPair);
         } catch (SodiumException e) {
             e.printStackTrace();
             return "";
@@ -136,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         return result.toString();
     }
 
-    public static byte[] hexToBytes(String str) {
+    private static byte[] hexToBytes(String str) {
         byte[] bytes = new byte[str.length() / 2];
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) Integer.parseInt(str.substring(2 * i, 2 * i + 2),
@@ -145,5 +152,12 @@ public class MainActivity extends AppCompatActivity {
         return bytes;
     }
 
+    private static String hexToBase64(String hexString) {
+        return base64Encoding(hexToBytes(hexString));
+    }
+
+    private static String base64ToHex(String base64String) {
+        return bytesToHex(base64Decoding(base64String));
+    }
 
 }
