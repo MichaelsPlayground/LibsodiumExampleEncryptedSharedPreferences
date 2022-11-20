@@ -50,14 +50,14 @@
                 android:text="Cryptobox Lazysodium" />
 
             <Button
-                android:id="@+id/btnCryptoBoxRun2"
+                android:id="@+id/btnCryptoBoxRunTweetNacl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
                 android:enabled="true"
-                android:text="Cryptobox2 " />
+                android:text="Cryptobox TweetNacl" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
@@ -96,6 +96,12 @@
                     android:visibility="visible"
                     tools:ignore="KeyboardInaccessibleWidget" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/etCryptoBoxPrivateKeyALayout"
@@ -157,6 +163,12 @@
                     tools:ignore="KeyboardInaccessibleWidget" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/etCryptoBoxPrivateKeyBLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -216,6 +228,12 @@
                     android:visibility="visible"
                     tools:ignore="KeyboardInaccessibleWidget" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/etCryptoBoxCiphertextLayout"
@@ -291,10 +309,96 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
                 android:background="@color/blue_300"
-                android:text="* authentication section *"
+                android:text="* speed section *"
                 android:textAlignment="center"
                 android:textSize="16sp"
                 android:textStyle="bold" />
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btnCryptoBoxRunSpeedLazysodium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:enabled="true"
+                android:text="Cryptobox Lazysodium speed" />
+
+            <Button
+                android:id="@+id/btnCryptoBoxRunSpeedTweetNacl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:enabled="true"
+                android:text="Cryptobox TweetNacl speed" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/etCryptoBoxLazysodiumSpeedLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:hint="Lazysodium speed"
+                android:visibility="visible"
+                app:boxCornerRadiusBottomEnd="5dp"
+                app:boxCornerRadiusBottomStart="5dp"
+                app:boxCornerRadiusTopEnd="5dp"
+                app:boxCornerRadiusTopStart="5dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCryptoBoxLazysodiumSpeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="false"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:visibility="visible"
+                    tools:ignore="KeyboardInaccessibleWidget" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/etCryptoBoxTweetNaclSpeedLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:hint="TweetNacl speed"
+                android:visibility="visible"
+                app:boxCornerRadiusBottomEnd="5dp"
+                app:boxCornerRadiusBottomStart="5dp"
+                app:boxCornerRadiusTopEnd="5dp"
+                app:boxCornerRadiusTopStart="5dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCryptoBoxTweetNaclSpeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:focusable="false"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:visibility="visible"
+                    tools:ignore="KeyboardInaccessibleWidget" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
