@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 String publicKeyBBase64TweetNacl = getCryptoBoxPublicKeyBase64TweetNacl(keyPairBTweetNacl);
                 String completeCiphertextBase64TweetNacl = encryptCryptoBoxBase64TweetNacl(privateKeyBBase64TweetNacl, publicKeyABase64TweetNacl, plaintextTweetNacl);
                 String decryptedtextTweetNacl = decryptCryptoBoxBase64TweetNacl(privateKeyABase64TweetNacl, publicKeyBBase64TweetNacl, completeCiphertextBase64TweetNacl);
-
+                System.out.println(completeCiphertextBase64TweetNacl);
                 privateKeyA.setText(privateKeyABase64TweetNacl);
                 publicKeyA.setText(publicKeyABase64TweetNacl);
                 privateKeyB.setText(privateKeyBBase64TweetNacl);
