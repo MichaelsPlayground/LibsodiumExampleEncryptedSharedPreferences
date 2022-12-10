@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 int keyNr = libsodiumUtils.getLastCryptoBoxKeyPairNumber();
                 String pub01 = libsodiumUtils.getPublicKeyBase64(keyNr);
                 log += "pubKey01 " + keyNr + " : " + pub01 + "\n";
+                log += "pubKey " + keyNr + " created: " + libsodiumUtils.getKeyGenerationTimestampString(keyNr) + "\n";
                 tvLog.setText(log);
                 String plaintext = "The lazy dog jumps over the quick brown fox";
                 com.goterl.lazysodium.utils.KeyPair keyPairALazysodium = generateCryptoBoxKeypairLazysodium();
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 log += "keyNr: " + keyNr + "\n";
                 String pub02 = libsodiumUtils.getPublicKeyBase64(keyNr);
                 log += "pubKey02 " + keyNr + " : " + pub02 + "\n";
+                log += "pubKey " + keyNr + " created: " + libsodiumUtils.getKeyGenerationTimestampString(keyNr) + "\n";
                 String ciph02 = encryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, pub02, plaintext);
                 log += "ciph02: " + ciph02 + "\n";
                 tvLog.setText(log);

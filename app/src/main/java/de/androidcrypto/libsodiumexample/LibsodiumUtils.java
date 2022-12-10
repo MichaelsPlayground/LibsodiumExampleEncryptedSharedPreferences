@@ -34,7 +34,7 @@ public class LibsodiumUtils {
     private boolean libsodiumUtilsAvailable = false;
     private String masterKeyAlias;
     public SharedPreferences sharedPreferences;
-    private Context mContext;
+    private final Context mContext;
     private int lastCryptoBoxKeyPairNumber = 0;
 
     private final String PRIVATE_KEY_NAME = "private_key_";
@@ -85,6 +85,32 @@ public class LibsodiumUtils {
         return lastCryptoBoxKeyPairNumber;
     }
 
+    public long getKeyGenerationTimestamp(int keyNumber) {
+        Log.d(TAG, "getKeyGenerationTimestamp");
+        if (keyNumber < 1) {
+            Log.e(TAG, "asking for an invalid key (key number is smaller than 1)");
+            return 0;
+        }
+        if (keyNumber > lastCryptoBoxKeyPairNumber) {
+            Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
+            return 0;
+        }
+        return sharedPreferences.getLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(keyNumber), 0);
+    }
+
+    public String getKeyGenerationTimestampString(int keyNumber) {
+        Log.d(TAG, "getKeyGenerationTimestampString");
+        if (keyNumber < 1) {
+            Log.e(TAG, "asking for an invalid key (key number is smaller than 1)");
+            return "";
+        }
+        if (keyNumber > lastCryptoBoxKeyPairNumber) {
+            Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
+            return "";
+        }
+        return sharedPreferences.getString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(keyNumber), "");
+    }
+
     public int generateNewKeyPair() {
         Log.d(TAG, "generate new KeyPair");
         KeyPair newKeyPair = generateCryptoBoxKeypairLazysodium();
@@ -102,7 +128,7 @@ public class LibsodiumUtils {
             lastCryptoBoxKeyPairNumber++;
             sharedPreferences.edit().putString(PRIVATE_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), privateKeyBase64).apply();
             sharedPreferences.edit().putString(PUBLIC_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), publicKeyBase64).apply();
-            sharedPreferences.edit().putString(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), String.valueOf(actualTime)).apply();
+            sharedPreferences.edit().putLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTime).apply();
             sharedPreferences.edit().putString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTimeString).apply();
             sharedPreferences.edit().putInt(LAST_KEYPAIR_NUMBER, lastCryptoBoxKeyPairNumber).apply();
             Log.d(TAG, "new keyPair generated and stored, number: " + String.valueOf(lastCryptoBoxKeyPairNumber));
@@ -229,7 +255,6 @@ public class LibsodiumUtils {
         return base64Encoding(keyPair.getPublicKey().getAsBytes());
     }
 
-
     /**
      * This is the CryptoBox encryption, it needs the publicKeyA from receipient and privateKeyB from sender (both in Base64 encoding)
      *
@@ -257,10 +282,10 @@ public class LibsodiumUtils {
     /**
      * This is the CryptoBox decryption, it needs the publicKeyB from sender and privateKeyA from receipient (both in Base64 encoding)
      *
-     * @param privateKeyA        from ReceipientSender
-     * @param publicKeyB
+     * @param privateKeyA from receipient
+     * @param publicKeyB from sender
      * @param completeCiphertext as nonce:ciphertext (each in hex encoding)
-     * @return the decrypted value
+     * @return the decrypted value/string
      */
     private String decryptCryptoBoxHexLazysodium(String privateKeyA, String publicKeyB, String completeCiphertext) {
         try {
@@ -282,21 +307,21 @@ public class LibsodiumUtils {
      * section for utils
      */
 
-    private static String base64Encoding(byte[] input) {
+    public static String base64Encoding(byte[] input) {
         return Base64.encodeToString(input, Base64.NO_WRAP);
     }
 
-    private static byte[] base64Decoding(String input) {
+    public static byte[] base64Decoding(String input) {
         return Base64.decode(input, Base64.NO_WRAP);
     }
 
-    private static String bytesToHex(byte[] bytes) {
+    public static String bytesToHex(byte[] bytes) {
         StringBuffer result = new StringBuffer();
         for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
         return result.toString();
     }
 
-    private static byte[] hexToBytes(String str) {
+    public static byte[] hexToBytes(String str) {
         byte[] bytes = new byte[str.length() / 2];
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) Integer.parseInt(str.substring(2 * i, 2 * i + 2),
@@ -305,11 +330,11 @@ public class LibsodiumUtils {
         return bytes;
     }
 
-    private static String hexToBase64(String hexString) {
+    public static String hexToBase64(String hexString) {
         return base64Encoding(hexToBytes(hexString));
     }
 
-    private static String base64ToHex(String base64String) {
+    public static String base64ToHex(String base64String) {
         return bytesToHex(base64Decoding(base64String));
     }
 }
