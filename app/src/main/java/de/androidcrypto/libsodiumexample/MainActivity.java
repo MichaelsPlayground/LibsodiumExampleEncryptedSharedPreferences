@@ -16,7 +16,6 @@ import com.goterl.lazysodium.interfaces.Box;
 import com.goterl.lazysodium.interfaces.SecretBox;
 import com.goterl.lazysodium.utils.Key;
 import com.goterl.lazysodium.utils.KeyPair;
-import com.iwebpp.crypto.TweetNacl;
 import com.iwebpp.crypto.TweetNaclFast;
 
 import java.nio.charset.StandardCharsets;
@@ -42,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         plaintext = findViewById(R.id.etCryptoBoxPlaintext);
         ciphertext = findViewById(R.id.etCryptoBoxCiphertext);
         decryptedtext = findViewById(R.id.etCryptoBoxDecryptedtext);
+
 
         // init Lazysodium
         ls = new LazySodiumAndroid(new SodiumAndroid());

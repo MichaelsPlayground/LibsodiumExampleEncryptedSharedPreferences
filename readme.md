@@ -1,6 +1,8 @@
-# Libsodium Example
+# Libsodium Example Encrypted Shared Preferences
 
 This app is showing how to use Libsodium's **CryptoBox**.
+
+The keys are stored with **Encrypted Shared Preferences**.
 
 **What is a CryptoBox ?**
 
@@ -84,3 +86,17 @@ The **general Libsodium documentation** is here: https://libsodium.gitbook.io/do
 Lazysodium-Android: https://github.com/terl/lazysodium-android
 
 TweetNacl-Java: https://github.com/InstantWebP2P/tweetnacl-java
+
+**Dependencies**
+
+To store the keys with Encrypted Shared Preferences you need to import this dependency:
+
+```plaintext
+implementation "androidx.security:security-crypto:1.0.0"
+```
+
+**Change in AndroidManifest.xml**: After deinstallation you are not been able to use the restored keys!
+```plaintext
+android:allowBackup="false" 
+android:fullBackupContent="false"
+```
