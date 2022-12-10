@@ -61,9 +61,13 @@ public class LibsodiumUtils {
             ls = new LazySodiumAndroid(new SodiumAndroid());
             // get the last generated keyPair number
             lastCryptoBoxKeyPairNumber = getLastCryptoBoxKeyPairNumberFromPreferences();
-
+            if (lastCryptoBoxKeyPairNumber == 0) {
+                Log.d(TAG, "generate the first keyPair");
+                generateNewKeyPair();
+            }
+            lastCryptoBoxKeyPairNumber = getLastCryptoBoxKeyPairNumberFromPreferences();
             libsodiumUtilsAvailable = true;
-            Log.d(TAG, "LibsodiumUtils available");
+            Log.d(TAG, "LibsodiumUtils available, actual lastCryptoBoxKeyPairNumber: " + lastCryptoBoxKeyPairNumber);
         } catch (GeneralSecurityException | IOException e) {
             Log.e(TAG, "Error on initialization of LibsodiumUtils: " + e.getMessage());
             libsodiumUtilsAvailable = false;
@@ -153,7 +157,7 @@ public class LibsodiumUtils {
             return null;
         }
         try {
-            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME, "");
+            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
             if (privateKeyBase64.equals("")) {
                 Log.e(TAG, "no privateKey found for privateKeyNumber " + privateKeyNumber);
                 return "";
@@ -191,7 +195,7 @@ public class LibsodiumUtils {
             return null;
         }
         try {
-            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME, "");
+            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
             if (privateKeyBase64.equals("")) {
                 Log.e(TAG, "no privateKey found for privateKeyNumber " + privateKeyNumber);
                 return "";

@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,6 +46,42 @@ public class MainActivity extends AppCompatActivity {
 
         // init Lazysodium
         ls = new LazySodiumAndroid(new SodiumAndroid());
+
+        Button runLibsodiumUtils = findViewById(R.id.btnCryptoBoxRunLibsodiumUtils);
+        runLibsodiumUtils.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "runLibsodiumUtils");
+                TextView tvLog = findViewById(R.id.tvCryptoBoxRunLibsodiumUtils);
+                String log = "runLibsodiumUtils" + "\n";
+                LibsodiumUtils libsodiumUtils = new LibsodiumUtils(getApplicationContext());
+                log += "isLibsodiumUtilsAvailable: " + libsodiumUtils.isLibsodiumUtilsAvailable() + "\n";
+                tvLog.setText(log);
+                int keyNr = libsodiumUtils.getLastCryptoBoxKeyPairNumber();
+                String pub01 = libsodiumUtils.getPublicKeyBase64(keyNr);
+                log += "pubKey01 " + keyNr + " : " + pub01 + "\n";
+                tvLog.setText(log);
+                String plaintext = "The lazy dog jumps over the quick brown fox";
+                com.goterl.lazysodium.utils.KeyPair keyPairALazysodium = generateCryptoBoxKeypairLazysodium();
+                String privateKeyABase64Lazysodium = getCryptoBoxPrivateKeyBase64Lazysodium(keyPairALazysodium);
+                String publicKeyABase64Lazysodium = getCryptoBoxPublicKeyBase64Lazysodium(keyPairALazysodium);
+                String ciph01 = libsodiumUtils.encryptCryptoBox(plaintext, keyNr, publicKeyABase64Lazysodium);
+                log += "ciph01: " + ciph01 + "\n";
+                String dec01 = decryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, pub01, ciph01);
+                log += "dec01: " + dec01 + "\n";
+                keyNr = libsodiumUtils.generateNewKeyPair();
+                log += "keyNr: " + keyNr + "\n";
+                String pub02 = libsodiumUtils.getPublicKeyBase64(keyNr);
+                log += "pubKey02 " + keyNr + " : " + pub02 + "\n";
+                String ciph02 = encryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, pub02, plaintext);
+                log += "ciph02: " + ciph02 + "\n";
+                tvLog.setText(log);
+                String dec02 = libsodiumUtils.decryptCryptoBox(ciph02, keyNr, publicKeyABase64Lazysodium);
+                log += "dec02: " + dec02 + "\n";
+                tvLog.setText(log);
+                System.out.println(log);
+            }
+        });
 
         Button runCryptoBoxLazysodium = findViewById(R.id.btnCryptoBoxRunLazysodium);
         runCryptoBoxLazysodium.setOnClickListener(new View.OnClickListener() {
