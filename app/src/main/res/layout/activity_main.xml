@@ -34,7 +34,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
-                android:text="The example shows a CryptoBox encryption"
+                android:text="The example shows a CryptoBox encryption and secure handling for private and public keys using LibsodiumUtils.class"
                 android:textAlignment="center"
                 android:textSize="16sp"
                 android:textStyle="normal" />

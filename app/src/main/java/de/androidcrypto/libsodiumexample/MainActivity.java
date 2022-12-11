@@ -1,6 +1,7 @@
 package de.androidcrypto.libsodiumexample;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -66,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
                 com.goterl.lazysodium.utils.KeyPair keyPairALazysodium = generateCryptoBoxKeypairLazysodium();
                 String privateKeyABase64Lazysodium = getCryptoBoxPrivateKeyBase64Lazysodium(keyPairALazysodium);
                 String publicKeyABase64Lazysodium = getCryptoBoxPublicKeyBase64Lazysodium(keyPairALazysodium);
+                // store the 3rd party publicKey
+                boolean storeSuccess = libsodiumUtils.set3rdPartyPublicKeyBase64("user123", 1, publicKeyABase64Lazysodium);
+                log += "storing the 3rd party public key in LibsodiumUtils was successful: " + storeSuccess + "\n";
                 String ciph01 = libsodiumUtils.encryptCryptoBox(plaintext, keyNr, publicKeyABase64Lazysodium);
                 log += "ciph01: " + ciph01 + "\n";
                 String dec01 = decryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, pub01, ciph01);
@@ -78,7 +82,14 @@ public class MainActivity extends AppCompatActivity {
                 String ciph02 = encryptCryptoBoxHexLazysodium(privateKeyABase64Lazysodium, pub02, plaintext);
                 log += "ciph02: " + ciph02 + "\n";
                 tvLog.setText(log);
-                String dec02 = libsodiumUtils.decryptCryptoBox(ciph02, keyNr, publicKeyABase64Lazysodium);
+                // simulate wrong aliasName
+                String read3rdPartyPublicKey = libsodiumUtils.get3rdPartyPublicKeyBase64("user124", 1);
+                if (TextUtils.isEmpty(read3rdPartyPublicKey)) {
+                    log += "could not read 3rd party public key for aliasName user124 and keyNumber 1\n";
+                }
+                read3rdPartyPublicKey = libsodiumUtils.get3rdPartyPublicKeyBase64("user123", 1);
+                log += "publicKey read: " + read3rdPartyPublicKey + "\n";
+                String dec02 = libsodiumUtils.decryptCryptoBox(ciph02, keyNr, read3rdPartyPublicKey);
                 log += "dec02: " + dec02 + "\n";
                 tvLog.setText(log);
                 System.out.println(log);

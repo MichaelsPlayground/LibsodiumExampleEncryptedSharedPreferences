@@ -26,22 +26,42 @@ import java.util.Date;
 public class LibsodiumUtils {
 
     /**
-     * This class is using Lazysodium for Libsodium CryptoBox encryption
+     * This is a utility class to secure communication between two parties using the CryptoBox method of Libsodium
+     * It is using Lazysodium for Libsodium CryptoBox encryption and EncryptedSharedPreferences for a secure storage
+     * After generation of a new key pair, the private and public keys are stored in EncryptedSharedPreferences
+     * The private key is never exposed outside of this class and used only in encryption and decryption methods.
+     *
+     * Additionally you can store 3rd party public keys as well in EncryptedSharedPreferences
+     *
+     * Be aware - encrypted data can only decrypted with the own private key and 3rd party public key - no other way
+     *
+     * Security warning: as we are working with EncryptedSharedPreferences the Masterkey is stored in Android's keystore
+     * that is not backuped. If your smartphone is unusable for any reason you do not have anymore access to the keys
+     * and you cannot recover the encrypted chat
+     *
      */
 
     private static final String TAG = "LibsodiumUtils";
 
     private boolean libsodiumUtilsAvailable = false;
     private String masterKeyAlias;
-    public SharedPreferences sharedPreferences;
+    private SharedPreferences sharedOwnPreferences; // for own keys and encryption
+    private SharedPreferences shared3rdPartyPreferences; // for storage of 3rd party public keys
     private final Context mContext;
     private int lastCryptoBoxKeyPairNumber = 0;
 
+    // used for own keys
+    private final String PREFERENCES_FILENAME = "own_secret_shared_prefs";
     private final String PRIVATE_KEY_NAME = "private_key_";
     private final String PUBLIC_KEY_NAME = "public_key_";
     private final String KEY_GENERATION_TIMESTAMP = "key_timestamp_";
     private final String KEY_GENERATION_TIMESTAMP_STRING = "key_timestamp_string_";
     private final String LAST_KEYPAIR_NUMBER = "last_keypair_number";
+
+    // used for 3rd party public keys
+    private final String PREFERENCES_FILENAME_3RDPARTY = "3rdpty_secret_shared_prefs";
+    private final String PUBLIC_KEY_NAME_3RDPARTY = "public_key_";
+    // note: the name is public_key_aliasname_number
 
     protected LazySodiumAndroid ls;
 
@@ -50,13 +70,16 @@ public class LibsodiumUtils {
         this.mContext = context;
         try {
             masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            sharedOwnPreferences = setupSharedPreferences(mContext, masterKeyAlias, PREFERENCES_FILENAME);
+            shared3rdPartyPreferences = setupSharedPreferences(mContext, masterKeyAlias, PREFERENCES_FILENAME_3RDPARTY);
+            /*
             sharedPreferences = EncryptedSharedPreferences.create(
-                    "secret_shared_prefs",
+                    PREFERENCES_FILENAME,
                     masterKeyAlias,
                     mContext,
                     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
+            );*/
             // init Lazysodium
             ls = new LazySodiumAndroid(new SodiumAndroid());
             // get the last generated keyPair number
@@ -95,7 +118,7 @@ public class LibsodiumUtils {
             Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
             return 0;
         }
-        return sharedPreferences.getLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(keyNumber), 0);
+        return sharedOwnPreferences.getLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(keyNumber), 0);
     }
 
     public String getKeyGenerationTimestampString(int keyNumber) {
@@ -108,7 +131,7 @@ public class LibsodiumUtils {
             Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
             return "";
         }
-        return sharedPreferences.getString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(keyNumber), "");
+        return sharedOwnPreferences.getString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(keyNumber), "");
     }
 
     public int generateNewKeyPair() {
@@ -126,11 +149,11 @@ public class LibsodiumUtils {
             String publicKeyBase64 = getCryptoBoxPublicKeyBase64Lazysodium(newKeyPair);
             // we are going to store the data
             lastCryptoBoxKeyPairNumber++;
-            sharedPreferences.edit().putString(PRIVATE_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), privateKeyBase64).apply();
-            sharedPreferences.edit().putString(PUBLIC_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), publicKeyBase64).apply();
-            sharedPreferences.edit().putLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTime).apply();
-            sharedPreferences.edit().putString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTimeString).apply();
-            sharedPreferences.edit().putInt(LAST_KEYPAIR_NUMBER, lastCryptoBoxKeyPairNumber).apply();
+            sharedOwnPreferences.edit().putString(PRIVATE_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), privateKeyBase64).apply();
+            sharedOwnPreferences.edit().putString(PUBLIC_KEY_NAME + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), publicKeyBase64).apply();
+            sharedOwnPreferences.edit().putLong(KEY_GENERATION_TIMESTAMP + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTime).apply();
+            sharedOwnPreferences.edit().putString(KEY_GENERATION_TIMESTAMP_STRING + "_" + String.valueOf(lastCryptoBoxKeyPairNumber), actualTimeString).apply();
+            sharedOwnPreferences.edit().putInt(LAST_KEYPAIR_NUMBER, lastCryptoBoxKeyPairNumber).apply();
             Log.d(TAG, "new keyPair generated and stored, number: " + String.valueOf(lastCryptoBoxKeyPairNumber));
             return lastCryptoBoxKeyPairNumber;
         } catch (Exception e) {
@@ -141,7 +164,7 @@ public class LibsodiumUtils {
 
     private int getLastCryptoBoxKeyPairNumberFromPreferences() {
         Log.d(TAG, "getLastCryptoBoxKeyPairNumberFromPreferences");
-        return sharedPreferences.getInt(LAST_KEYPAIR_NUMBER, 0);
+        return sharedOwnPreferences.getInt(LAST_KEYPAIR_NUMBER, 0);
     }
 
     public String getPublicKeyBase64(int keyNumber) {
@@ -154,7 +177,60 @@ public class LibsodiumUtils {
             Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
             return null;
         }
-        return sharedPreferences.getString(PUBLIC_KEY_NAME + "_" + String.valueOf(keyNumber), "");
+        return sharedOwnPreferences.getString(PUBLIC_KEY_NAME + "_" + String.valueOf(keyNumber), "");
+    }
+
+    public String get3rdPartyPublicKeyBase64(String aliasName, int keyNumber) {
+        Log.d(TAG, "get3rdPartyPublicKeyBase64");
+        if (keyNumber < 1) {
+            Log.e(TAG, "asking for an invalid key (key number is smaller than 1)");
+            return null;
+        }
+        //
+        /*
+        if (keyNumber > lastCryptoBoxKeyPairNumber) {
+            Log.e(TAG, "asking for an invalid key (key number larger than lastCryptoBoxKeyPairNumber)");
+            return null;
+        }
+         */
+        // note: the name is public_key_aliasname_number
+        String keyName = PUBLIC_KEY_NAME_3RDPARTY + "_" + aliasName + "_" + String.valueOf(keyNumber);
+        return shared3rdPartyPreferences.getString(keyName, "");
+    }
+
+    public boolean set3rdPartyPublicKeyBase64(String aliasName, int keyNumber, String publicKeyBase64) {
+        Log.d(TAG, "set3rdPartyPublicKeyBase64");
+        if (TextUtils.isEmpty(aliasName)) {
+            Log.e(TAG, "aliasname is empty");
+            return false;
+        }
+        if (keyNumber < 1) {
+            Log.e(TAG, "asking for an invalid key (key number is smaller than 1)");
+            return false;
+        }
+        if (TextUtils.isEmpty(publicKeyBase64)) {
+            Log.e(TAG, "publicKeyBase64 is empty");
+            return false;
+        }
+        // note: the name is public_key_aliasname_number
+        String keyName = PUBLIC_KEY_NAME_3RDPARTY + "_" + aliasName + "_" + String.valueOf(keyNumber);
+        try {
+            shared3rdPartyPreferences.edit().putString(keyName, publicKeyBase64).apply();
+        } catch (Exception e) {
+            Log.e(TAG, "Error on key storage: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    private SharedPreferences setupSharedPreferences (Context context, String keyAlias, String preferencesFilename) throws GeneralSecurityException, IOException {
+            return EncryptedSharedPreferences.create(
+                    preferencesFilename,
+                    keyAlias,
+                    context,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
     }
 
     /**
@@ -183,7 +259,7 @@ public class LibsodiumUtils {
             return null;
         }
         try {
-            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
+            String privateKeyBase64 = sharedOwnPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
             if (privateKeyBase64.equals("")) {
                 Log.e(TAG, "no privateKey found for privateKeyNumber " + privateKeyNumber);
                 return "";
@@ -221,7 +297,7 @@ public class LibsodiumUtils {
             return null;
         }
         try {
-            String privateKeyBase64 = sharedPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
+            String privateKeyBase64 = sharedOwnPreferences.getString(PRIVATE_KEY_NAME + "_" + String.valueOf(privateKeyNumber), "");
             if (privateKeyBase64.equals("")) {
                 Log.e(TAG, "no privateKey found for privateKeyNumber " + privateKeyNumber);
                 return "";
